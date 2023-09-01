@@ -83,7 +83,7 @@ for t in tracks:
     if not DRY_RUN:
         # move the tracks if we're not doing a dry run and update the database
         shutil.move(src=t.path, dst=(CONSOLIDATE_PATH / t.path.name))
-        cursor.execute(f'UPDATE Track SET path = "{relpath(CONSOLIDATE_PATH / t.path.name, ENGINE_LIBRARY_PATH.parent)}" WHERE id = {t.id}')
+        cursor.execute(f'UPDATE Track SET path = "{relpath(CONSOLIDATE_PATH / t.path.name, ENGINE_LIBRARY_PATH)}" WHERE id = {t.id}')
     else:
         # print the source and final destinations if we are consolidating
         print(f"Would have moved {t.path} to {(CONSOLIDATE_PATH / t.path.name)}")
