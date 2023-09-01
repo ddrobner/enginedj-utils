@@ -87,3 +87,5 @@ for t in tracks:
 # save changes to the engine database
 db_con.commit()
 db_con.close()
+
+print("All Done :)")
