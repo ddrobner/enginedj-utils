@@ -8,6 +8,7 @@ from os import chdir
 from os.path import abspath, relpath
 
 
+# set up argument parsing
 parser = argparse.ArgumentParser(
     prog="Engine DJ Consolidate", 
     description="Simple Script to Consolidate Engine DJ Library"
@@ -17,11 +18,14 @@ parser.add_argument('engine_database_path', help="Path to Engine DJ's m.db")
 parser.add_argument('consolidate_path', help="The path to move your music files to")
 parser.add_argument('--dry-run', action='store_true', help="Don't move any files or update database and print what would happen instead")
 
+# load our arguments
 args = parser.parse_args()
 
 # set paths from args
 ENGINE_DB_PATH = Path(args.engine_database_path)
 CONSOLIDATE_PATH = Path(args.consolidate_path)
+
+# and the dry run flag
 DRY_RUN = bool(args.dry_run)
 
 # class to nicely keep track of the relevant track information
@@ -60,6 +64,7 @@ if not DRY_RUN:
     if confirmation != 'y':
         exit()
 
+# chdir to engine db path to handle relpaths
 chdir(ENGINE_DB_PATH.parent)
 
 # open db connection
@@ -81,7 +86,7 @@ for t in tracks:
         cursor.execute(f'UPDATE Track SET path = "{relpath(CONSOLIDATE_PATH / t.path.name, ENGINE_DB_PATH.parent)}" WHERE id = {t.id}')
     else:
         # print the source and final destinations if we are consolidating
-        print(f"Moving {t.path} to {(CONSOLIDATE_PATH / t.path.name)}")
+        print(f"Would have moved {t.path} to {(CONSOLIDATE_PATH / t.path.name)}")
 
 
 # save changes to the engine database
