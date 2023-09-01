@@ -3,6 +3,7 @@ import shutil
 import argparse
 
 from pathlib import Path
+from sys import exit
 from os import chdir
 from os.path import abspath, relpath
 
@@ -48,6 +49,16 @@ class Track:
     def __str__(self):
         return f"ID: {self.id} Path: {self.path}"
 
+
+if not DRY_RUN:
+    print("ARE YOU SURE YOU WANT TO CONSOLIDATE YOUR LIBRARY?")
+    print("THIS MEANS MOVING ALL OF YOUR MUSIC FILES INTO THE SAME FOLDER.")
+    print("THIS SCRIPT COMES WITH NO GUARANTEES AND MAY BREAK YOUR LIBRARY")
+    print("SO MAKE SURE YOU HAVE A BACKUP.")
+    print("To continue, enter 'y'")
+    confirmation = input()
+    if confirmation != 'y':
+        exit()
 
 chdir(ENGINE_DB_PATH.parent)
 
