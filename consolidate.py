@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser(
     description="Simple Script to Consolidate Engine DJ Library"
     )
 
-parser.add_argument('engine_database_path', help="Path to Engine DJ's m.db")
+parser.add_argument('engine_library_path', help="Path to Engine Library")
 parser.add_argument('consolidate_path', help="The path to move your music files to")
 parser.add_argument('--dry-run', action='store_true', help="Don't move any files or update database and print what would happen instead")
 
@@ -22,7 +22,7 @@ parser.add_argument('--dry-run', action='store_true', help="Don't move any files
 args = parser.parse_args()
 
 # set paths from args
-ENGINE_DB_PATH = Path(args.engine_database_path)
+ENGINE_LIBRARY_PATH = Path(args.engine_library_path)
 CONSOLIDATE_PATH = Path(args.consolidate_path)
 
 # and the dry run flag
@@ -65,10 +65,10 @@ if not DRY_RUN:
         exit()
 
 # chdir to engine db path to handle relpaths
-chdir(ENGINE_DB_PATH.parent)
+chdir(ENGINE_LIBRARY_PATH)
 
 # open db connection
-db_con = sqlite3.connect(ENGINE_DB_PATH)
+db_con = sqlite3.connect(ENGINE_LIBRARY_PATH / "Database2/m.db")
 cursor = db_con.cursor()
 cursor.execute("SELECT id, path FROM Track ORDER BY id ASC;")
 
@@ -83,7 +83,7 @@ for t in tracks:
     if not DRY_RUN:
         # move the tracks if we're not doing a dry run and update the database
         shutil.move(src=t.path, dst=(CONSOLIDATE_PATH / t.path.name))
-        cursor.execute(f'UPDATE Track SET path = "{relpath(CONSOLIDATE_PATH / t.path.name, ENGINE_DB_PATH.parent)}" WHERE id = {t.id}')
+        cursor.execute(f'UPDATE Track SET path = "{relpath(CONSOLIDATE_PATH / t.path.name, ENGINE_LIBRARY_PATH.parent)}" WHERE id = {t.id}')
     else:
         # print the source and final destinations if we are consolidating
         print(f"Would have moved {t.path} to {(CONSOLIDATE_PATH / t.path.name)}")
