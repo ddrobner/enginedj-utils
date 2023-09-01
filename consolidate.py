@@ -16,12 +16,12 @@ parser.add_argument('engine_database_path', help="Path to Engine DJ's m.db")
 parser.add_argument('consolidate_path', help="The path to move your music files to")
 parser.add_argument('--dry-run', action='store_true', help="Don't move any files or update database and print what would happen instead")
 
-parser.parse_args()
+args = parser.parse_args()
 
 # set paths from args
-ENGINE_DB_PATH = Path(parser.engine_database_path)
-CONSOLIDATE_PATH = Path(parser.conolidate_path)
-DRY_RUN = bool(parser.dry_run)
+ENGINE_DB_PATH = Path(args.engine_database_path)
+CONSOLIDATE_PATH = Path(args.consolidate_path)
+DRY_RUN = bool(args.dry_run)
 
 # class to nicely keep track of the relevant track information
 class Track:
