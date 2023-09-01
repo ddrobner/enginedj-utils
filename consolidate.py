@@ -1,9 +1,27 @@
 import sqlite3
-from pathlib import Path
 import shutil
+import argparse
+
+from pathlib import Path
 from os import chdir
 from os.path import abspath, relpath
 
+
+parser = argparse.ArgumentParser(
+    prog="Engine DJ Consolidate", 
+    description="Simple Script to Consolidate Engine DJ Library"
+    )
+
+parser.add_argument('engine_database_path', help="Path to Engine DJ's m.db")
+parser.add_argument('consolidate_path', help="The path to move your music files to")
+parser.add_argument('--dry-run', action='store_true', help="Don't move any files or update database and print what would happen instead")
+
+parser.parse_args()
+
+# set paths from args
+ENGINE_DB_PATH = Path(parser.engine_database_path)
+CONSOLIDATE_PATH = Path(parser.conolidate_path)
+DRY_RUN = bool(parser.dry_run)
 
 # class to nicely keep track of the relevant track information
 class Track:
@@ -31,10 +49,6 @@ class Track:
         return f"ID: {self.id} Path: {self.path}"
 
 
-# set paths
-ENGINE_DB_PATH = Path("/home/david/Downloads/m.db")
-CONSOLIDATE_PATH = Path("/home/david/engine_consolidate")
-
 chdir(ENGINE_DB_PATH.parent)
 
 # open db connection
@@ -48,12 +62,17 @@ tracks = []
 for t in cursor.fetchall():
     tracks.append(Track(t[0], t[1]))
 
+# actually move and update the engine database
 for t in tracks:
-    # move track file here
-    #print(f'UPDATE Track SET path = "{relpath(t.path, ENGINE_DB_PATH.parent)}" WHERE id = {t.id}')
-    cursor.execute(f'UPDATE Track SET path = "{relpath(CONSOLIDATE_PATH / t.path.name, ENGINE_DB_PATH.parent)}" WHERE id = {t.id}')
+    if not DRY_RUN:
+        # move the tracks if we're not doing a dry run and update the database
+        shutil.move(src=t.path, dst=(CONSOLIDATE_PATH / t.path.name))
+        cursor.execute(f'UPDATE Track SET path = "{relpath(CONSOLIDATE_PATH / t.path.name, ENGINE_DB_PATH.parent)}" WHERE id = {t.id}')
+    else:
+        # print the source and final destinations if we are consolidating
+        print(f"Moving {t.path} to {(CONSOLIDATE_PATH / t.path.name)}")
 
+
+# save changes to the engine database
 db_con.commit()
-cursor.execute("SELECT path FROM Track WHERE id = 420;")
-
 db_con.close()
