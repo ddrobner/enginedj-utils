@@ -5,25 +5,44 @@
 import taglib
 import argparse
 import sqlite3
-from pathlib import Path
-from os.path import abspath, relpath
+from os import chdir
 
 from engineutils.track import Track
 
-db_con = sqlite3.connect("Database2/m.db")
+parser = argparse.ArgumentParser(
+    prog = "Energy to Rating",
+    description = "Converted IDv3 energy tags to ratings in Engine DJ Database"
+)
+
+
+parser.add_argument('engine_library_path', help="Path to Engine Library")
+
+chdir(parser.engine_library_path)
+
+# setting up DB con
+db_con = sqlite3.connect("Engine Library/Database2/m.db")
 cursor = db_con.cursor()
 cursor.execute("SELECT id, path FROM Track ORDER BY id ASC;")
 
 # load tracks into a format we can work with
 tracks = []
 
+# fetching the tracks in the db
 for t in cursor.fetchall():
     tracks.append(Track(t[0], t[1]))
 
+# now we read the energy from the actual files
 for t in tracks:
+    # here, we convert the number used to store energy to the way engine dj stores it in it's database (0-100 in increments of 20, for each star)
     try:
         with taglib.File(t.path) as s:
             energy = int(s.tags['ENERGYLEVEL'][0])
-            t.energy = 20*(20*energy if energy % 2 == 0 else 20*(energy + 1))
+            t.energy = 10*(energy if energy % 2 == 0 else (energy + 1))
+            cursor.execute(f'UPDATE Track SET rating = {t.energy} WHERE id = {t.id}')
     except:
-        t.energy = 100
+        # and don't touch the rating if we can't read one from the mp3
+        pass
+
+db_con.commit()
+db_con.close()
+print("All done :-)")

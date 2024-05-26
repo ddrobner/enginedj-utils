@@ -18,6 +18,8 @@ parser.add_argument('engine_library_path', help="Path to Engine Library")
 parser.add_argument('consolidate_path', help="The path to move your music files to")
 parser.add_argument('--dry-run', action='store_true', help="Don't move any files or update database and print what would happen instead")
 
+
+
 # load our arguments
 args = parser.parse_args()
 

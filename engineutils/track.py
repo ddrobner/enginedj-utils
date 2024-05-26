@@ -27,7 +27,7 @@ class Track:
     
     @path.setter
     def path(self, val: Path):
-        self._path = abspath(val) 
+        self._path = Path(abspath(val))
 
     @energy.setter
     def energy(self, val: int):
