@@ -6,6 +6,7 @@ import taglib
 import argparse
 import sqlite3
 from os import chdir
+from pathlib import Path
 
 from engineutils.track import Track
 
@@ -15,12 +16,14 @@ parser = argparse.ArgumentParser(
 )
 
 
-parser.add_argument('engine_library_path', help="Path to Engine Library")
+parser.add_argument('engine_library_path', help="Path to Engine Library (the folder where 'm.db' is)")
 
-chdir(parser.engine_library_path)
+args = parser.parse_args()
+
+chdir(args.engine_library_path)
 
 # setting up DB con
-db_con = sqlite3.connect("Engine Library/Database2/m.db")
+db_con = sqlite3.connect(Path("Database2/m.db"))
 cursor = db_con.cursor()
 cursor.execute("SELECT id, path FROM Track ORDER BY id ASC;")
 
@@ -33,14 +36,19 @@ for t in cursor.fetchall():
 
 # now we read the energy from the actual files
 for t in tracks:
-    # here, we convert the number used to store energy to the way engine dj stores it in it's database (0-100 in increments of 20, for each star)
+    # here, we convert the number used to store energy to the way engine dj
+    # stores it in it's database (0-100 in increments of 20, for each star)
     try:
         with taglib.File(t.path) as s:
             energy = int(s.tags['ENERGYLEVEL'][0])
+            # have to round here since engine doesn't support half stars
+            # IMO I can change this later since the mp3 tag is the authoritative
+            # source of information and I'd rather not have the engine db be
+            # unhappy :)
             t.energy = 10*(energy if energy % 2 == 0 else (energy + 1))
             cursor.execute(f'UPDATE Track SET rating = {t.energy} WHERE id = {t.id}')
     except:
-        # and don't touch the rating if we can't read one from the mp3
+        # if that doesn't work we don't touch the DB
         pass
 
 db_con.commit()
